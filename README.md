@@ -27,7 +27,7 @@
 - **Messy PDF / Paper Copy-Paste Support:** Automatically detects table headers, merges wrapped continuation lines, splits large tables into overlapping chunks to stay within token limits, and deduplicates boundary entries.
 - **Multiple AI Providers:**
   - **Google Gemini** (`gemini-2.5-flash`, `gemini-2.5-pro`, `gemini-2.0-flash`) with strict `responseSchema`
-  - **OpenAI** (`gpt-4o-mini`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`) + **Custom OpenAI-Compatible Endpoint URL** support (e.g., `https://api.axforge.ai/v1/chat/completions`, local `http://localhost` servers)
+  - **OpenAI** (`gpt-4o-mini`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`) + **Custom OpenAI-Compatible Endpoint URL** support (e.g. local `http://localhost` servers)
   - **OpenRouter** (`anthropic/claude-3.5-sonnet`, `google/gemini-2.5-flash`, `openai/gpt-4o`, `deepseek/deepseek-chat`)
 - **Offline Fallback:** Built-in deterministic CSV/TSV/space-delimited parser for quick parsing without an API key.
 - **Structured Extraction:** Parses `cDNA_change`, `protein_change`, `position_aa`, `position_bp`, `exon`, `mutation_type`, `phenotype_or_type`, and splits combined counts like `"30(58)"` into separate `family_count` and `allele_count` fields.
