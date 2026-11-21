@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import { Filter, Palette, RotateCcw, Search, Sliders } from 'lucide-react';
 import {
+  LEGEND_LABELS,
+  SYMBOL_SHAPE_LABELS,
+  useT,
+} from '../i18n/translations';
+import {
+  getUniquePhenotypes,
+  useProjectStore,
+} from '../store/useProjectStore';
+import {
   FONT_FAMILIES,
   FontFamilyOption,
   LEGEND_POSITIONS,
@@ -8,24 +17,11 @@ import {
   MUTATION_TYPES,
   STYLE_PRESETS,
   SYMBOL_SHAPES,
-  SYMBOL_SHAPE_LABELS_TR,
   SymbolShape,
 } from '../types/schema';
-import {
-  getUniquePhenotypes,
-  useProjectStore,
-} from '../store/useProjectStore';
-
-const LEGEND_LABELS_TR: Record<LegendPosition, string> = {
-  'top-right': 'Sağ Üst',
-  'top-left': 'Sol Üst',
-  'bottom-right': 'Sağ Alt',
-  'bottom-left': 'Sol Alt',
-  'bottom-center': 'Alt Orta (Yatay)',
-  hidden: 'Gizle',
-};
 
 export const StyleFilterSidebar: React.FC = () => {
+  const { lang, t } = useT();
   const [sidebarTab, setSidebarTab] = useState<'style' | 'filter'>('style');
 
   const activeMode = useProjectStore((s) => s.activeMode);
@@ -42,8 +38,8 @@ export const StyleFilterSidebar: React.FC = () => {
   const uniquePhenotypes = getUniquePhenotypes(mutations);
 
   const countsByType = MUTATION_TYPES.reduce(
-    (acc, t) => {
-      acc[t] = mutations.filter((m) => m.mutation_type === t).length;
+    (acc, type) => {
+      acc[type] = mutations.filter((m) => m.mutation_type === type).length;
       return acc;
     },
     {} as Record<(typeof MUTATION_TYPES)[number], number>,
@@ -73,7 +69,7 @@ export const StyleFilterSidebar: React.FC = () => {
           }`}
         >
           <Palette className="w-3.5 h-3.5" />
-          <span>Stil & Özelleştirme</span>
+          <span>{t.tabStyle}</span>
         </button>
         <button
           type="button"
@@ -85,7 +81,7 @@ export const StyleFilterSidebar: React.FC = () => {
           }`}
         >
           <Filter className="w-3.5 h-3.5" />
-          <span>Filtreleme</span>
+          <span>{t.tabFilter}</span>
         </button>
       </div>
 
@@ -95,7 +91,7 @@ export const StyleFilterSidebar: React.FC = () => {
             {/* Academic Presets */}
             <section className="space-y-2">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Akademik Yayın Şablonları
+                {t.presetsTitle}
               </h3>
               <div className="grid grid-cols-1 gap-1.5">
                 {STYLE_PRESETS.map((preset) => (
@@ -115,7 +111,7 @@ export const StyleFilterSidebar: React.FC = () => {
             {/* Count Metric Selection */}
             <section className="space-y-2 border-t border-slate-100 pt-3">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Çizilecek Sayım Verisi
+                {t.countMetricTitle}
               </h3>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
@@ -127,7 +123,7 @@ export const StyleFilterSidebar: React.FC = () => {
                       : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                   }`}
                 >
-                  Aile Sayısı
+                  {t.familyCount}
                 </button>
                 <button
                   type="button"
@@ -138,7 +134,7 @@ export const StyleFilterSidebar: React.FC = () => {
                       : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                   }`}
                 >
-                  Allel Sayısı
+                  {t.alleleCount}
                 </button>
               </div>
             </section>
@@ -147,7 +143,7 @@ export const StyleFilterSidebar: React.FC = () => {
             <section className="space-y-2 border-t border-slate-100 pt-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  Grafik Başlığı
+                  {t.chartTitleSection}
                 </h3>
                 <label className="flex items-center gap-1 cursor-pointer text-[11px]">
                   <input
@@ -155,7 +151,7 @@ export const StyleFilterSidebar: React.FC = () => {
                     checked={style.showTitle}
                     onChange={(e) => updateStyle({ showTitle: e.target.checked })}
                   />
-                  Göster
+                  {t.show}
                 </label>
               </div>
               {style.showTitle && (
@@ -164,14 +160,14 @@ export const StyleFilterSidebar: React.FC = () => {
                     type="text"
                     value={style.title}
                     onChange={(e) => updateStyle({ title: e.target.value })}
-                    placeholder="Ana başlık"
+                    placeholder={t.mainTitlePlaceholder}
                     className="w-full px-2.5 py-1.5 border border-slate-300 rounded-md"
                   />
                   <input
                     type="text"
                     value={style.subtitle}
                     onChange={(e) => updateStyle({ subtitle: e.target.value })}
-                    placeholder="Alt başlık"
+                    placeholder={t.subtitlePlaceholder}
                     className="w-full px-2.5 py-1.5 border border-slate-300 rounded-md"
                   />
                 </div>
@@ -183,12 +179,12 @@ export const StyleFilterSidebar: React.FC = () => {
               <section className="space-y-2.5 border-t border-slate-100 pt-3">
                 <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
                   <Sliders className="w-3.5 h-3.5" />
-                  Mod 1 Ayarları (Protein Domain)
+                  {t.mode1SettingsTitle}
                 </h3>
 
                 <div>
                   <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                    Üst / Alt Yerleşim Kuralı
+                    {t.splitRuleLabel}
                   </label>
                   <select
                     value={style.mode1SplitBy}
@@ -199,17 +195,17 @@ export const StyleFilterSidebar: React.FC = () => {
                     }
                     className="w-full px-2 py-1.5 border border-slate-300 rounded-md bg-white"
                   >
-                    <option value="phenotype">Fenotipe Göre Ayır</option>
-                    <option value="alternating">Dönüşümlü (Üst / Alt)</option>
-                    <option value="mutation-type">Missense Üstte / Diğerleri Altta</option>
-                    <option value="top-only">Tümü Üstte</option>
+                    <option value="phenotype">{t.splitPhenotype}</option>
+                    <option value="alternating">{t.splitAlternating}</option>
+                    <option value="mutation-type">{t.splitMutType}</option>
+                    <option value="top-only">{t.splitTopOnly}</option>
                   </select>
                 </div>
 
                 {style.mode1SplitBy === 'phenotype' && (
                   <div>
                     <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                      Üst Tarafta Gösterilecek Fenotip
+                      {t.topPhenotypeLabel}
                     </label>
                     <select
                       value={style.mode1TopPhenotype}
@@ -227,7 +223,7 @@ export const StyleFilterSidebar: React.FC = () => {
 
                 <div>
                   <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                    Etiket Açısı / Düzeni
+                    {t.labelAngleLayout}
                   </label>
                   <select
                     value={style.mode1LabelLayout}
@@ -238,9 +234,9 @@ export const StyleFilterSidebar: React.FC = () => {
                     }
                     className="w-full px-2 py-1.5 border border-slate-300 rounded-md bg-white"
                   >
-                    <option value="horizontal-tiered">Yatay Çok Katmanlı (Çakışmasız)</option>
-                    <option value="angled-45">45° Açılı</option>
-                    <option value="vertical-90">90° Dikey</option>
+                    <option value="horizontal-tiered">{t.layoutHorizontalTiered}</option>
+                    <option value="angled-45">{t.layoutAngled45}</option>
+                    <option value="vertical-90">{t.layoutVertical90}</option>
                   </select>
                 </div>
 
@@ -271,7 +267,7 @@ export const StyleFilterSidebar: React.FC = () => {
                       checked={style.mode1ShowCount}
                       onChange={(e) => updateStyle({ mode1ShowCount: e.target.checked })}
                     />
-                    <span>Hasta/Allel (n)</span>
+                    <span>{t.countChip}</span>
                   </label>
                   <label className="flex items-center gap-1.5 cursor-pointer">
                     <input
@@ -281,13 +277,13 @@ export const StyleFilterSidebar: React.FC = () => {
                         updateStyle({ mode1ShowPhenotype: e.target.checked })
                       }
                     />
-                    <span>Fenotip</span>
+                    <span>{t.phenotypeChip}</span>
                   </label>
                 </div>
 
                 <div>
                   <div className="flex justify-between text-[11px] text-slate-600">
-                    <span>Protein Çubuk Yüksekliği</span>
+                    <span>{t.proteinBarHeight}</span>
                     <span className="font-mono">{style.mode1BarHeight} px</span>
                   </div>
                   <input
@@ -306,7 +302,7 @@ export const StyleFilterSidebar: React.FC = () => {
               <section className="space-y-3 border-t border-slate-100 pt-3">
                 <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
                   <Sliders className="w-3.5 h-3.5" />
-                  Mod 2 Ayarları (cDNA / Ekzon Yığını)
+                  {t.mode2SettingsTitle}
                 </h3>
 
                 {/* Etiket Gösterimi & Yerleşimi */}
@@ -319,14 +315,14 @@ export const StyleFilterSidebar: React.FC = () => {
                         updateStyle({ mode2ShowLabels: e.target.checked })
                       }
                     />
-                    <span>Mutasyon Etiketlerini Göster</span>
+                    <span>{t.showMutLabels}</span>
                   </label>
 
                   {style.mode2ShowLabels && (
                     <>
                       <div>
                         <span className="block text-[11px] font-medium text-slate-600 mb-1">
-                          Etiket Yerleşimi
+                          {t.labelPlacementLabel}
                         </span>
                         <div className="grid grid-cols-2 gap-1.5">
                           <button
@@ -338,7 +334,7 @@ export const StyleFilterSidebar: React.FC = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                           >
-                            Direkt Şeklin Üstünde
+                            {t.aboveClusterBtn}
                           </button>
                           <button
                             type="button"
@@ -349,7 +345,7 @@ export const StyleFilterSidebar: React.FC = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                           >
-                            Ok / Çizgi ile Üstte
+                            {t.leaderLinesBtn}
                           </button>
                         </div>
                       </div>
@@ -357,7 +353,7 @@ export const StyleFilterSidebar: React.FC = () => {
                       {style.mode2LabelPlacement === 'above-cluster' ? (
                         <div>
                           <div className="flex justify-between text-[11px] text-slate-600">
-                            <span>Şekle Dikey Uzaklık</span>
+                            <span>{t.verticalOffsetLabel}</span>
                             <span className="font-mono">{style.mode2LabelOffsetY} px</span>
                           </div>
                           <input
@@ -382,13 +378,13 @@ export const StyleFilterSidebar: React.FC = () => {
                               updateStyle({ mode2LeaderDashed: e.target.checked })
                             }
                           />
-                          <span>Kesikli Lider Çizgisi</span>
+                          <span>{t.dashedLeaderLabel}</span>
                         </label>
                       )}
 
                       <div>
                         <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                          Etiket Açısı
+                          {t.labelAngleLabel}
                         </label>
                         <select
                           value={style.mode2LabelAngle}
@@ -399,15 +395,15 @@ export const StyleFilterSidebar: React.FC = () => {
                           }
                           className="w-full px-2 py-1 border border-slate-300 rounded-md bg-white"
                         >
-                          <option value={0}>0° (Yatay)</option>
-                          <option value={-45}>45° Açılı</option>
-                          <option value={-90}>90° Dikey</option>
+                          <option value={0}>{t.angle0}</option>
+                          <option value={-45}>{t.angle45}</option>
+                          <option value={-90}>{t.angle90}</option>
                         </select>
                       </div>
 
                       <div>
                         <span className="block text-[11px] font-medium text-slate-600 mb-1">
-                          Etiket İçeriği
+                          {t.labelContentLabel}
                         </span>
                         <div className="grid grid-cols-2 gap-1">
                           <label className="flex items-center gap-1.5 cursor-pointer">
@@ -438,7 +434,7 @@ export const StyleFilterSidebar: React.FC = () => {
                                 updateStyle({ mode2ShowCount: e.target.checked })
                               }
                             />
-                            <span>Hasta/Allel (n)</span>
+                            <span>{t.countChip}</span>
                           </label>
                           <label className="flex items-center gap-1.5 cursor-pointer">
                             <input
@@ -448,7 +444,7 @@ export const StyleFilterSidebar: React.FC = () => {
                                 updateStyle({ mode2ShowPhenotype: e.target.checked })
                               }
                             />
-                            <span>Fenotip</span>
+                            <span>{t.phenotypeChip}</span>
                           </label>
                         </div>
                       </div>
@@ -456,7 +452,7 @@ export const StyleFilterSidebar: React.FC = () => {
                       {/* Etiket Font & Punto */}
                       <div className="border-t border-slate-200 pt-2 space-y-2">
                         <span className="block text-[11px] font-semibold text-slate-700">
-                          Etiket Yazı Tipi & Punto
+                          {t.labelTypoTitle}
                         </span>
                         <select
                           value={style.mode2LabelFontFamily}
@@ -470,7 +466,7 @@ export const StyleFilterSidebar: React.FC = () => {
                           className="w-full px-2 py-1 border border-slate-300 rounded-md bg-white"
                         >
                           <option value="inherit">
-                            Genel Font ({style.fontFamily})
+                            {t.globalFontOption(style.fontFamily)}
                           </option>
                           {FONT_FAMILIES.map((f) => (
                             <option key={f} value={f}>
@@ -482,7 +478,7 @@ export const StyleFilterSidebar: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <div className="flex-1">
                             <label className="block text-[10px] text-slate-500 mb-0.5">
-                              Punto (pt)
+                              {t.fontSizePt}
                             </label>
                             <input
                               type="number"
@@ -503,7 +499,7 @@ export const StyleFilterSidebar: React.FC = () => {
                           </div>
                           <div>
                             <label className="block text-[10px] text-slate-500 mb-0.5">
-                              Renk
+                              {t.colorLabel}
                             </label>
                             <input
                               type="color"
@@ -530,7 +526,7 @@ export const StyleFilterSidebar: React.FC = () => {
                                   ? 'bg-indigo-600 text-white border-indigo-600'
                                   : 'bg-white text-slate-700 border-slate-300'
                               }`}
-                              title="Etiketleri Kalın (Bold) Yap"
+                              title={t.boldBtnTitle}
                             >
                               B
                             </button>
@@ -545,7 +541,7 @@ export const StyleFilterSidebar: React.FC = () => {
                 <div className="space-y-2">
                   <div>
                     <div className="flex justify-between text-[11px] text-slate-600">
-                      <span>Kümeleme Eşiği (Sayı &gt; Eşik)</span>
+                      <span>{t.clusterThresholdLabel}</span>
                       <span className="font-mono font-semibold text-indigo-700">
                         {style.mode2ClusterThreshold}
                       </span>
@@ -562,15 +558,15 @@ export const StyleFilterSidebar: React.FC = () => {
                       }
                       className="w-full accent-indigo-600"
                     />
-                    <p className="text-[10px] text-slate-500">
-                      Eşiği aşan yığınlar yukarı çıkarken 2&apos;li, 3&apos;lü, 4&apos;lü piramit kümesine dönüşür.
-                    </p>
+                    <p className="text-[10px] text-slate-500">{t.clusterThresholdHint}</p>
                   </div>
 
                   <div>
                     <div className="flex justify-between text-[11px] text-slate-600">
-                      <span>Maksimum Küme Genişliği</span>
-                      <span className="font-mono">{style.mode2MaxClusterWidth} sütun</span>
+                      <span>{t.maxClusterWidthLabel}</span>
+                      <span className="font-mono">
+                        {style.mode2MaxClusterWidth} {t.colsUnit}
+                      </span>
                     </div>
                     <input
                       type="range"
@@ -588,7 +584,7 @@ export const StyleFilterSidebar: React.FC = () => {
 
                   <div>
                     <div className="flex justify-between text-[11px] text-slate-600">
-                      <span>Semboller Arası Boşluk</span>
+                      <span>{t.symbolGapLabel}</span>
                       <span className="font-mono">{style.mode2SymbolGap} px</span>
                     </div>
                     <input
@@ -612,7 +608,7 @@ export const StyleFilterSidebar: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <div className="flex-1">
                       <div className="flex justify-between text-[11px] text-slate-600">
-                        <span>Alt Bağlantı Kalınlığı</span>
+                        <span>{t.stemWidthLabel}</span>
                         <span className="font-mono">{style.mode2StemWidth} px</span>
                       </div>
                       <input
@@ -630,7 +626,9 @@ export const StyleFilterSidebar: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <span className="block text-[10px] text-slate-500 mb-0.5">Çizgi</span>
+                      <span className="block text-[10px] text-slate-500 mb-0.5">
+                        {t.stemColorLabel}
+                      </span>
                       <input
                         type="color"
                         value={style.mode2StemColor}
@@ -645,7 +643,7 @@ export const StyleFilterSidebar: React.FC = () => {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <div className="flex justify-between text-[11px] text-slate-600">
-                        <span>Ekzon Yük.</span>
+                        <span>{t.exonHeightLabel}</span>
                         <span className="font-mono">{style.mode2BarHeight}</span>
                       </div>
                       <input
@@ -663,7 +661,7 @@ export const StyleFilterSidebar: React.FC = () => {
                     </div>
                     <div>
                       <div className="flex justify-between text-[11px] text-slate-600">
-                        <span>Ekzon Boşluk</span>
+                        <span>{t.exonGapLabel}</span>
                         <span className="font-mono">{style.mode2ExonGap}</span>
                       </div>
                       <input
@@ -689,7 +687,7 @@ export const StyleFilterSidebar: React.FC = () => {
                         updateStyle({ mode2ShowDomainsBelow: e.target.checked })
                       }
                     />
-                    <span>Ekzonların Altında Domain Belirteçleri</span>
+                    <span>{t.domainsBelowLabel}</span>
                   </label>
                 </div>
               </section>
@@ -698,7 +696,7 @@ export const StyleFilterSidebar: React.FC = () => {
             {/* Mutation Types Styling */}
             <section className="space-y-2 border-t border-slate-100 pt-3">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Mutasyon Tipi Renk ve Sembolleri
+                {t.mutStylesTitle}
               </h3>
               <div className="space-y-2">
                 {MUTATION_TYPES.map((type) => {
@@ -731,7 +729,6 @@ export const StyleFilterSidebar: React.FC = () => {
                               })
                             }
                             className="w-12 px-1.5 py-0.5 border border-slate-300 rounded text-[11px] font-mono bg-white"
-                            title="Sembol boyutu"
                           />
                         </div>
                       </div>
@@ -746,7 +743,7 @@ export const StyleFilterSidebar: React.FC = () => {
                       >
                         {SYMBOL_SHAPES.map((shape) => (
                           <option key={shape} value={shape}>
-                            {SYMBOL_SHAPE_LABELS_TR[shape]}
+                            {SYMBOL_SHAPE_LABELS[lang][shape]}
                           </option>
                         ))}
                       </select>
@@ -759,11 +756,13 @@ export const StyleFilterSidebar: React.FC = () => {
             {/* Typography & Canvas Dimensions */}
             <section className="space-y-2.5 border-t border-slate-100 pt-3">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Yazı Tipi, Boyut & Lejant
+                {t.typoCanvasTitle}
               </h3>
 
               <div>
-                <label className="block text-[11px] text-slate-600 mb-1">Yazı Tipi</label>
+                <label className="block text-[11px] text-slate-600 mb-1">
+                  {t.fontFamilyLabel}
+                </label>
                 <select
                   value={style.fontFamily}
                   onChange={(e) =>
@@ -782,7 +781,7 @@ export const StyleFilterSidebar: React.FC = () => {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[11px] text-slate-600 mb-1">
-                    Etiket Boyutu (pt)
+                    {t.labelSizePt}
                   </label>
                   <input
                     type="number"
@@ -800,7 +799,7 @@ export const StyleFilterSidebar: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-[11px] text-slate-600 mb-1">
-                    Başlık Boyutu (pt)
+                    {t.titleSizePt}
                   </label>
                   <input
                     type="number"
@@ -817,7 +816,7 @@ export const StyleFilterSidebar: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-[11px] text-slate-600 mb-1">
-                    Genişlik (px)
+                    {t.widthPx}
                   </label>
                   <input
                     type="number"
@@ -835,7 +834,7 @@ export const StyleFilterSidebar: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-[11px] text-slate-600 mb-1">
-                    Yükseklik (px)
+                    {t.heightPx}
                   </label>
                   <input
                     type="number"
@@ -854,7 +853,9 @@ export const StyleFilterSidebar: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-600 mb-1">Lejant Konumu</label>
+                <label className="block text-[11px] text-slate-600 mb-1">
+                  {t.legendPosLabel}
+                </label>
                 <select
                   value={style.legendPosition}
                   onChange={(e) =>
@@ -864,7 +865,7 @@ export const StyleFilterSidebar: React.FC = () => {
                 >
                   {LEGEND_POSITIONS.map((pos) => (
                     <option key={pos} value={pos}>
-                      {LEGEND_LABELS_TR[pos]}
+                      {LEGEND_LABELS[lang][pos]}
                     </option>
                   ))}
                 </select>
@@ -876,7 +877,7 @@ export const StyleFilterSidebar: React.FC = () => {
                   checked={style.legendShowCounts}
                   onChange={(e) => updateStyle({ legendShowCounts: e.target.checked })}
                 />
-                <span>Lejantta mutasyon sayılarını göster</span>
+                <span>{t.legendShowCounts}</span>
               </label>
             </section>
           </>
@@ -885,7 +886,7 @@ export const StyleFilterSidebar: React.FC = () => {
           <>
             <div className="flex items-center justify-between">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Veri Filtreleme
+                {t.dataFilteringTitle}
               </h3>
               <button
                 type="button"
@@ -893,14 +894,14 @@ export const StyleFilterSidebar: React.FC = () => {
                 className="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-600 hover:text-indigo-800"
               >
                 <RotateCcw className="w-3 h-3" />
-                Sıfırla
+                {t.reset}
               </button>
             </div>
 
             {/* Search */}
             <div>
               <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                Varyant / Metin Arama
+                {t.searchVariantLabel}
               </label>
               <div className="relative">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
@@ -908,7 +909,7 @@ export const StyleFilterSidebar: React.FC = () => {
                   type="text"
                   value={filter.searchQuery}
                   onChange={(e) => updateFilter({ searchQuery: e.target.value })}
-                  placeholder="ör. Gly284, c.850, Ex-8"
+                  placeholder={t.searchVariantPlaceholder}
                   className="w-full pl-8 pr-2.5 py-1.5 border border-slate-300 rounded-md"
                 />
               </div>
@@ -917,9 +918,7 @@ export const StyleFilterSidebar: React.FC = () => {
             {/* Minimum Count Threshold */}
             <div className="border-t border-slate-100 pt-3 space-y-1.5">
               <div className="flex justify-between text-[11px] font-medium text-slate-700">
-                <span>
-                  Minimum {style.countMetric === 'family_count' ? 'Aile' : 'Allel'} Sayısı
-                </span>
+                <span>{t.minCountLabel(style.countMetric)}</span>
                 <span className="font-mono font-bold text-indigo-700">{filter.minCount}</span>
               </div>
               <input
@@ -932,16 +931,14 @@ export const StyleFilterSidebar: React.FC = () => {
                 }
                 className="w-full accent-indigo-600"
               />
-              <p className="text-[10px] text-slate-500">
-                Bu değerin altındaki nadir mutasyonlar grafikten geçici olarak gizlenir.
-              </p>
+              <p className="text-[10px] text-slate-500">{t.minCountHint}</p>
             </div>
 
             {/* Mutation Types */}
             <div className="border-t border-slate-100 pt-3 space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  Mutasyon Tipleri
+                  {t.mutTypesTitle}
                 </span>
                 <div className="flex gap-2 text-[11px]">
                   <button
@@ -949,26 +946,26 @@ export const StyleFilterSidebar: React.FC = () => {
                     onClick={() =>
                       updateFilter({
                         enabledTypes: Object.fromEntries(
-                          MUTATION_TYPES.map((t) => [t, true]),
+                          MUTATION_TYPES.map((tp) => [tp, true]),
                         ) as typeof filter.enabledTypes,
                       })
                     }
                     className="text-indigo-600 hover:underline"
                   >
-                    Tümü
+                    {t.allBtn}
                   </button>
                   <button
                     type="button"
                     onClick={() =>
                       updateFilter({
                         enabledTypes: Object.fromEntries(
-                          MUTATION_TYPES.map((t) => [t, false]),
+                          MUTATION_TYPES.map((tp) => [tp, false]),
                         ) as typeof filter.enabledTypes,
                       })
                     }
                     className="text-slate-500 hover:underline"
                   >
-                    Hiçbiri
+                    {t.noneBtn}
                   </button>
                 </div>
               </div>
@@ -1009,7 +1006,7 @@ export const StyleFilterSidebar: React.FC = () => {
             {uniquePhenotypes.length > 0 && (
               <div className="border-t border-slate-100 pt-3 space-y-1.5">
                 <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  Fenotipler
+                  {t.phenotypesTitle}
                 </span>
                 <div className="space-y-1">
                   {uniquePhenotypes.map((ph) => (
@@ -1032,13 +1029,13 @@ export const StyleFilterSidebar: React.FC = () => {
             {/* Position Range */}
             <div className="border-t border-slate-100 pt-3 space-y-1.5">
               <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                AA Pozisyon Aralığı
+                {t.aaRangeTitle}
               </span>
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="number"
                   min={1}
-                  placeholder="Min aa"
+                  placeholder={t.minAa}
                   value={filter.minPosition ?? ''}
                   onChange={(e) =>
                     updateFilter({
@@ -1050,7 +1047,7 @@ export const StyleFilterSidebar: React.FC = () => {
                 <input
                   type="number"
                   min={1}
-                  placeholder="Max aa"
+                  placeholder={t.maxAa}
                   value={filter.maxPosition ?? ''}
                   onChange={(e) =>
                     updateFilter({

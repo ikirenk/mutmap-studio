@@ -2,7 +2,7 @@
   "name": "mutmap-studio",
   "version": "1.0.0",
   "homepage": "https://github.com/ikirenk",
-  "description": "Bilimsel mutasyon tablolarını yapay zeka ile ayrıştıran ve akademik yayın kalitesinde görselleştiren masaüstü biyoinformatik uygulaması.",
+  "description": "A desktop bioinformatics application that parses scientific mutation tables using AI and visualizes them in publication-ready quality.",
   "main": "dist-electron/main.js",
   "author": {
     "name": "Batuhan Aydogan",

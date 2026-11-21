@@ -7,6 +7,7 @@ import { HeaderBar } from './components/HeaderBar';
 import { MutationDataGrid } from './components/MutationDataGrid';
 import { SettingsModal } from './components/SettingsModal';
 import { StyleFilterSidebar } from './components/StyleFilterSidebar';
+import { useT } from './i18n/translations';
 import { openTextFile, saveTextFile } from './services/platform';
 import { useProjectStore } from './store/useProjectStore';
 import { ProjectFileSchema } from './types/schema';
@@ -17,6 +18,7 @@ interface ToastState {
 }
 
 export const App: React.FC = () => {
+  const { t } = useT();
   const activeTab = useProjectStore((s) => s.activeTab);
   const gene = useProjectStore((s) => s.geneStructure);
   const undo = useProjectStore((s) => s.undo);
@@ -50,19 +52,19 @@ export const App: React.FC = () => {
   const handleSaveProject = useCallback(async () => {
     const project = toProjectFile();
     const res = await saveTextFile({
-      defaultPath: `${gene.geneSymbol || 'mutmap'}_projesi.json`,
-      filters: [{ name: 'MutMap Projesi (.json)', extensions: ['json'] }],
+      defaultPath: `${gene.geneSymbol || 'mutmap'}_project.json`,
+      filters: [{ name: t.projectFilterName, extensions: ['json'] }],
       content: JSON.stringify(project, null, 2),
       mimeType: 'application/json',
     });
     if (!res.canceled) {
-      notify('Proje (.json) başarıyla kaydedildi.', 'success');
+      notify(t.projectSaved, 'success');
     }
-  }, [toProjectFile, gene.geneSymbol, notify]);
+  }, [toProjectFile, gene.geneSymbol, notify, t]);
 
   const handleOpenProject = useCallback(async () => {
     const res = await openTextFile({
-      filters: [{ name: 'MutMap Projesi (.json)', extensions: ['json'] }],
+      filters: [{ name: t.projectFilterName, extensions: ['json'] }],
     });
     if (res.canceled || !res.content) return;
     try {
@@ -70,21 +72,21 @@ export const App: React.FC = () => {
       const parsed = ProjectFileSchema.safeParse(raw);
       if (!parsed.success) {
         throw new Error(
-          parsed.error.issues[0]?.message ?? 'Geçersiz MutMap proje dosyası şeması.',
+          parsed.error.issues[0]?.message ?? 'Invalid MutMap project file schema.',
         );
       }
       loadProjectFile(parsed.data);
       notify(
-        `Proje yüklendi: ${parsed.data.metadata.projectName} (${parsed.data.mutations.length} mutasyon)`,
+        t.projectLoaded(parsed.data.metadata.projectName, parsed.data.mutations.length),
         'success',
       );
     } catch (err) {
       notify(
-        `Proje açma hatası: ${err instanceof Error ? err.message : String(err)}`,
+        t.projectOpenError(err instanceof Error ? err.message : String(err)),
         'error',
       );
     }
-  }, [loadProjectFile, notify]);
+  }, [loadProjectFile, notify, t]);
 
   // Global keyboard shortcuts (Ctrl+Z, Ctrl+Shift+Z, Ctrl+S)
   useEffect(() => {

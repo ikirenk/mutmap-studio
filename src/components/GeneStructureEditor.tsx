@@ -10,6 +10,7 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react';
+import { useT } from '../i18n/translations';
 import { fetchGeneStructureFromApis } from '../services/bio/geneFetcher';
 import { openTextFile, saveTextFile } from '../services/platform';
 import { useProjectStore } from '../store/useProjectStore';
@@ -20,6 +21,7 @@ export interface GeneStructureEditorProps {
 }
 
 export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNotify }) => {
+  const { t } = useT();
   const gene = useProjectStore((s) => s.geneStructure);
   const updateGeneMeta = useProjectStore((s) => s.updateGeneMeta);
   const setGeneStructure = useProjectStore((s) => s.setGeneStructure);
@@ -52,7 +54,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
       setGeneStructure(merged);
       setFetchWarnings(result.warnings);
       onNotify(
-        `${merged.geneSymbol} yapısı çekildi: ${merged.domains.length} domain, ${merged.exons.length} ekzon.`,
+        t.geneFetchedMsg(merged.geneSymbol, merged.domains.length, merged.exons.length),
         'success',
       );
     } catch (err) {
@@ -64,7 +66,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
 
   const handleImportDomains = async () => {
     const res = await openTextFile({
-      filters: [{ name: 'JSON veya CSV', extensions: ['json', 'csv', 'tsv'] }],
+      filters: [{ name: 'JSON / CSV', extensions: ['json', 'csv', 'tsv'] }],
     });
     if (res.canceled || !res.content) return;
     try {
@@ -72,7 +74,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
       if (text.startsWith('[') || text.startsWith('{')) {
         const raw = JSON.parse(text);
         const arr = Array.isArray(raw) ? raw : raw.domains;
-        if (!Array.isArray(arr)) throw new Error('Domain dizisi bulunamadı.');
+        if (!Array.isArray(arr)) throw new Error('Domains array not found.');
         const domains: ProteinDomain[] = arr.map((d, i) => ({
           id: d.id || `dom-imp-${i + 1}`,
           name: String(d.name || `Domain ${i + 1}`),
@@ -83,7 +85,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
           description: d.description ? String(d.description) : undefined,
         }));
         importDomains(domains);
-        onNotify(`${domains.length} protein domaini içe aktarıldı.`, 'success');
+        onNotify(t.domainsImportedMsg(domains.length), 'success');
       } else {
         const lines = text.split(/\r?\n/).filter((l) => l.trim());
         const domains: ProteinDomain[] = [];
@@ -102,11 +104,11 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
           }
         });
         importDomains(domains);
-        onNotify(`${domains.length} protein domaini CSV'den içe aktarıldı.`, 'success');
+        onNotify(t.domainsImportedMsg(domains.length), 'success');
       }
     } catch (err) {
       onNotify(
-        `Domain içe aktarma hatası: ${err instanceof Error ? err.message : String(err)}`,
+        t.importJsonErr(err instanceof Error ? err.message : String(err)),
         'error',
       );
     }
@@ -114,7 +116,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
 
   const handleImportExons = async () => {
     const res = await openTextFile({
-      filters: [{ name: 'JSON veya CSV', extensions: ['json', 'csv', 'tsv'] }],
+      filters: [{ name: 'JSON / CSV', extensions: ['json', 'csv', 'tsv'] }],
     });
     if (res.canceled || !res.content) return;
     try {
@@ -122,7 +124,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
       if (text.startsWith('[') || text.startsWith('{')) {
         const raw = JSON.parse(text);
         const arr = Array.isArray(raw) ? raw : raw.exons;
-        if (!Array.isArray(arr)) throw new Error('Ekzon dizisi bulunamadı.');
+        if (!Array.isArray(arr)) throw new Error('Exons array not found.');
         const exons: ExonRegion[] = arr.map((e, i) => ({
           id: e.id || `ex-imp-${i + 1}`,
           name: String(e.name || `Ex-${i + 1}`),
@@ -133,7 +135,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
           isCoding: e.isCoding ?? true,
         }));
         importExons(exons);
-        onNotify(`${exons.length} ekzon içe aktarıldı.`, 'success');
+        onNotify(t.exonsImportedMsg(exons.length), 'success');
       } else {
         const lines = text.split(/\r?\n/).filter((l) => l.trim());
         const exons: ExonRegion[] = [];
@@ -147,17 +149,22 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
               exonNumber: exons.length + 1,
               startBp: Math.max(1, parseInt(cols[1], 10) || 1),
               endBp: Math.max(1, parseInt(cols[2], 10) || 1),
-              color: cols[3] && /^#/.test(cols[3]) ? cols[3] : exons.length % 2 === 0 ? '#dbeafe' : '#bfdbfe',
+              color:
+                cols[3] && /^#/.test(cols[3])
+                  ? cols[3]
+                  : exons.length % 2 === 0
+                    ? '#dbeafe'
+                    : '#bfdbfe',
               isCoding: true,
             });
           }
         });
         importExons(exons);
-        onNotify(`${exons.length} ekzon CSV'den içe aktarıldı.`, 'success');
+        onNotify(t.exonsImportedMsg(exons.length), 'success');
       }
     } catch (err) {
       onNotify(
-        `Ekzon içe aktarma hatası: ${err instanceof Error ? err.message : String(err)}`,
+        t.importJsonErr(err instanceof Error ? err.message : String(err)),
         'error',
       );
     }
@@ -165,13 +172,13 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
 
   const handleExportGeneJson = async () => {
     const res = await saveTextFile({
-      defaultPath: `${gene.geneSymbol || 'gene'}_yapisi.json`,
-      filters: [{ name: 'JSON Dosyası', extensions: ['json'] }],
+      defaultPath: `${gene.geneSymbol || 'gene'}_structure.json`,
+      filters: [{ name: 'JSON', extensions: ['json'] }],
       content: JSON.stringify(gene, null, 2),
       mimeType: 'application/json',
     });
     if (!res.canceled) {
-      onNotify('Gen ve domain yapısı JSON olarak kaydedildi.', 'success');
+      onNotify(t.geneExportedMsg, 'success');
     }
   };
 
@@ -183,12 +190,9 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
           <div>
             <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
               <Dna className="w-4 h-4 text-indigo-600" />
-              Gen ve Protein Yapısı Tanımlama
+              {t.geneTitle}
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Protein uzunluğu (aa), cDNA uzunluğu (bp), domain ve ekzon sınırlarını düzenleyin veya
-              UniProt / Ensembl üzerinden otomatik çekin.
-            </p>
+            <p className="text-xs text-slate-500 mt-0.5">{t.geneSubtitle}</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -196,7 +200,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
               type="text"
               value={lookupSymbol}
               onChange={(e) => setLookupSymbol(e.target.value.toUpperCase())}
-              placeholder="Gen adı (ör. ITGB2, TP53)"
+              placeholder={t.genePlaceholder}
               className="px-3 py-1.5 text-xs font-semibold uppercase border border-slate-300 rounded-lg focus:outline-none focus:border-indigo-500 w-44"
             />
             <button
@@ -210,7 +214,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
               ) : (
                 <CloudDownload className="w-3.5 h-3.5" />
               )}
-              UniProt / Ensembl&apos;dan Otomatik Çek
+              {t.fetchUniProtEnsembl}
             </button>
             <button
               type="button"
@@ -218,7 +222,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
               className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200"
             >
               <FileDown className="w-3.5 h-3.5" />
-              Yapıyı Dışa Aktar
+              {t.exportStructure}
             </button>
           </div>
         </div>
@@ -238,7 +242,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mt-4">
           <div>
             <label className="block text-[11px] font-medium text-slate-600 mb-1">
-              Gen Sembolü
+              {t.geneSymbolLabel}
             </label>
             <input
               type="text"
@@ -249,7 +253,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
           </div>
           <div className="md:col-span-2">
             <label className="block text-[11px] font-medium text-slate-600 mb-1">
-              Protein Adı
+              {t.proteinNameLabel}
             </label>
             <input
               type="text"
@@ -260,7 +264,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
           </div>
           <div>
             <label className="block text-[11px] font-medium text-slate-600 mb-1">
-              Protein Uzunluğu (aa)
+              {t.proteinLengthLabel}
             </label>
             <input
               type="number"
@@ -276,7 +280,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
           </div>
           <div>
             <label className="block text-[11px] font-medium text-slate-600 mb-1">
-              cDNA Uzunluğu (bp)
+              {t.cdnaLengthLabel}
             </label>
             <input
               type="number"
@@ -313,9 +317,9 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
             <div>
               <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
                 <Layers className="w-4 h-4 text-indigo-600" />
-                Protein Domainleri ({gene.domains.length})
+                {t.domainsTitle(gene.domains.length)}
               </h3>
-              <p className="text-[11px] text-slate-500">Mod 1 ve Mod 2 domain haritası için aa aralıkları</p>
+              <p className="text-[11px] text-slate-500">{t.domainsSubtitle}</p>
             </div>
             <div className="flex items-center gap-1.5">
               <button
@@ -332,7 +336,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Domain Ekle
+                {t.addDomain}
               </button>
             </div>
           </div>
@@ -341,12 +345,12 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
             <table className="w-full text-left text-xs border-collapse">
               <thead className="bg-slate-100 sticky top-0 border-b border-slate-200 text-[11px] text-slate-600 uppercase">
                 <tr>
-                  <th className="p-2">Domain Adı</th>
-                  <th className="p-2 w-24">Kısa Ad</th>
-                  <th className="p-2 w-20">Başlangıç</th>
-                  <th className="p-2 w-20">Bitiş</th>
-                  <th className="p-2 w-14 text-center">Renk</th>
-                  <th className="p-2 w-10 text-center">Sil</th>
+                  <th className="p-2">{t.domainNameCol}</th>
+                  <th className="p-2 w-24">{t.domainShortCol}</th>
+                  <th className="p-2 w-20">{t.startCol}</th>
+                  <th className="p-2 w-20">{t.endCol}</th>
+                  <th className="p-2 w-14 text-center">{t.colorCol}</th>
+                  <th className="p-2 w-10 text-center">{t.colDelete}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -366,7 +370,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
                         value={dom.shortName ?? ''}
                         onChange={(e) => updateDomain(dom.id, { shortName: e.target.value })}
                         className="grid-cell-input"
-                        placeholder="Kısa"
+                        placeholder={t.domainShortCol}
                       />
                     </td>
                     <td className="p-1">
@@ -417,7 +421,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
                 {gene.domains.length === 0 && (
                   <tr>
                     <td colSpan={6} className="p-6 text-center text-slate-400">
-                      Henüz protein domaini tanımlanmadı.
+                      {t.noDomains}
                     </td>
                   </tr>
                 )}
@@ -432,9 +436,9 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
             <div>
               <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
                 <Dna className="w-4 h-4 text-emerald-600" />
-                cDNA Ekzon Yapısı ({gene.exons.length})
+                {t.exonsTitle(gene.exons.length)}
               </h3>
-              <p className="text-[11px] text-slate-500">Mod 2 cDNA/Ekzon frekans haritası için bp aralıkları</p>
+              <p className="text-[11px] text-slate-500">{t.exonsSubtitle}</p>
             </div>
             <div className="flex items-center gap-1.5">
               <button
@@ -451,7 +455,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Ekzon Ekle
+                {t.addExon}
               </button>
             </div>
           </div>
@@ -460,12 +464,12 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
             <table className="w-full text-left text-xs border-collapse">
               <thead className="bg-slate-100 sticky top-0 border-b border-slate-200 text-[11px] text-slate-600 uppercase">
                 <tr>
-                  <th className="p-2">Ekzon Adı</th>
-                  <th className="p-2 w-20">No</th>
-                  <th className="p-2 w-24">Başlangıç bp</th>
-                  <th className="p-2 w-24">Bitiş bp</th>
-                  <th className="p-2 w-14 text-center">Renk</th>
-                  <th className="p-2 w-10 text-center">Sil</th>
+                  <th className="p-2">{t.exonNameCol}</th>
+                  <th className="p-2 w-20">{t.exonNoCol}</th>
+                  <th className="p-2 w-24">{t.startBpCol}</th>
+                  <th className="p-2 w-24">{t.endBpCol}</th>
+                  <th className="p-2 w-14 text-center">{t.colorCol}</th>
+                  <th className="p-2 w-10 text-center">{t.colDelete}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -540,7 +544,7 @@ export const GeneStructureEditor: React.FC<GeneStructureEditorProps> = ({ onNoti
                 {gene.exons.length === 0 && (
                   <tr>
                     <td colSpan={6} className="p-6 text-center text-slate-400">
-                      Henüz ekzon bölgesi tanımlanmadı.
+                      {t.noExons}
                     </td>
                   </tr>
                 )}

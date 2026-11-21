@@ -1,4 +1,5 @@
 import React from 'react';
+import { useT } from '../i18n/translations';
 import {
   LegendPosition,
   MUTATION_TYPES,
@@ -19,6 +20,7 @@ export const ChartLegend: React.FC<ChartLegendProps> = ({
   mutations,
   activeTypes,
 }) => {
+  const { t } = useT();
   if (style.legendPosition === 'hidden') return null;
 
   const typesToShow = activeTypes ?? [...MUTATION_TYPES];
@@ -149,7 +151,7 @@ export const ChartLegend: React.FC<ChartLegendProps> = ({
         fontWeight="bold"
         fill="#475569"
       >
-        Mutasyon Tipi
+        {t.legendHeader}
       </text>
       {entries.map((entry, idx) => {
         const st = style.mutationStyles[entry.type];

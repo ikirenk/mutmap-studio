@@ -21,8 +21,23 @@ import {
   createDefaultStyleConfig,
 } from '../types/schema';
 import { loadPersistedSettings, savePersistedSettings } from '../services/platform';
+import type { AppLanguage } from '../i18n/translations';
 
 export type AppTab = 'data' | 'gene' | 'chart';
+
+const LANG_STORAGE_KEY = 'mutmap_studio_lang_v1';
+
+function getInitialLanguage(): AppLanguage {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = window.localStorage.getItem(LANG_STORAGE_KEY);
+      if (saved === 'en' || saved === 'tr') return saved;
+    } catch {
+      // ignore storage errors
+    }
+  }
+  return 'tr';
+}
 
 const MAX_UNDO_HISTORY = 50;
 
@@ -69,6 +84,7 @@ export function getFilteredMutations(
 }
 
 interface ProjectState {
+  language: AppLanguage;
   activeTab: AppTab;
   projectName: string;
   createdAt: string;
@@ -84,6 +100,7 @@ interface ProjectState {
   redoStack: ManualLabelPositions[];
   aiSettings: AISettings;
 
+  setLanguage: (lang: AppLanguage) => void;
   setActiveTab: (tab: AppTab) => void;
   setProjectName: (name: string) => void;
   setRawInputText: (text: string) => void;
@@ -154,6 +171,7 @@ function syncFilterWithMutations(
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
+  language: getInitialLanguage(),
   activeTab: 'chart',
   projectName: initialSample.metadata.projectName,
   createdAt: initialSample.metadata.createdAt,
@@ -169,6 +187,16 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   redoStack: [],
   aiSettings: DEFAULT_AI_SETTINGS,
 
+  setLanguage: (language) => {
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(LANG_STORAGE_KEY, language);
+      } catch {
+        // ignore storage errors
+      }
+    }
+    set({ language });
+  },
   setActiveTab: (tab) => set({ activeTab: tab }),
   setProjectName: (projectName) => set({ projectName }),
   setRawInputText: (rawInputText) => set({ rawInputText }),

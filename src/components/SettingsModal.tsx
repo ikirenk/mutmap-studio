@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  AlertCircle,
   CheckCircle2,
   Eye,
   EyeOff,
@@ -7,8 +8,8 @@ import {
   Loader2,
   PlugZap,
   X,
-  AlertCircle,
 } from 'lucide-react';
+import { useT } from '../i18n/translations';
 import { resolveOpenAICompletionsUrl, testAIConnection } from '../services/ai/parser';
 import { useProjectStore } from '../store/useProjectStore';
 import {
@@ -30,6 +31,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   onNotify,
 }) => {
+  const { t } = useT();
   const aiSettings = useProjectStore((s) => s.aiSettings);
   const saveAISettingsToDisk = useProjectStore((s) => s.saveAISettingsToDisk);
 
@@ -95,7 +97,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const handleSave = async () => {
     await saveAISettingsToDisk(draft);
-    onNotify('Yapay zeka ayarları güvenli olarak kaydedildi.', 'success');
+    onNotify(t.settingsSavedMsg, 'success');
     onClose();
   };
 
@@ -105,7 +107,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <KeyRound className="w-4 h-4 text-indigo-600" />
-            Yapay Zeka (AI Parser) Ayarları
+            {t.settingsTitle}
           </h2>
           <button
             type="button"
@@ -120,7 +122,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Provider */}
           <div>
             <label className="block font-semibold text-slate-700 mb-1.5">
-              API Sağlayıcısı
+              {t.apiProviderLabel}
             </label>
             <div className="grid grid-cols-3 gap-2">
               <button
@@ -163,10 +165,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div>
             <label className="block font-semibold text-slate-700 mb-1">
               {draft.provider === 'gemini'
-                ? 'Gemini API Anahtarı'
+                ? t.geminiKeyLabel
                 : draft.provider === 'openai'
-                  ? 'OpenAI API Anahtarı'
-                  : 'OpenRouter API Anahtarı'}
+                  ? t.openaiKeyLabel
+                  : t.openrouterKeyLabel}
             </label>
             <div className="relative">
               <input
@@ -198,10 +200,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-[11px] text-slate-500 mt-1">
-              Anahtarlarınız Electron safeStorage ile yerel cihazınızda şifrelenerek saklanır; proje
-              JSON dosyalarına dahil edilmez.
-            </p>
+            <p className="text-[11px] text-slate-500 mt-1">{t.keyStorageHint}</p>
           </div>
 
           {/* Custom OpenAI URL */}
@@ -209,7 +208,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block font-semibold text-slate-700">
-                  Özel API URL (İsteğe Bağlı)
+                  {t.customOpenAiUrlLabel}
                 </label>
                 {draft.openaiBaseUrl.trim() && (
                   <button
@@ -217,7 +216,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     onClick={() => setDraft((prev) => ({ ...prev, openaiBaseUrl: '' }))}
                     className="text-[11px] font-medium text-indigo-600 hover:text-indigo-800"
                   >
-                    Varsayılan
+                    {t.defaultBtn}
                   </button>
                 )}
               </div>
@@ -227,7 +226,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onChange={(e) =>
                   setDraft((prev) => ({ ...prev, openaiBaseUrl: e.target.value }))
                 }
-                placeholder="https://api.openai.com/v1/chat/completions (ör. https://api.axforge.ai/v1/chat/completions)"
+                placeholder="https://api.openai.com/v1/chat/completions"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono text-xs focus:outline-none focus:border-indigo-500"
               />
               {(() => {
@@ -235,7 +234,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   const preview = resolveOpenAICompletionsUrl(draft.openaiBaseUrl);
                   return (
                     <p className="text-[11px] text-slate-500 mt-1 truncate">
-                      Hedef uç nokta: <span className="font-mono text-slate-700">{preview}</span>
+                      {t.targetEndpointLabel}{' '}
+                      <span className="font-mono text-slate-700">{preview}</span>
                     </p>
                   );
                 } catch (err) {
@@ -251,7 +251,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Model Selection */}
           <div className="space-y-2">
-            <label className="block font-semibold text-slate-700">Model Seçimi</label>
+            <label className="block font-semibold text-slate-700">
+              {t.modelSelectLabel}
+            </label>
             <select
               value={presets.some((m) => m.id === draft.model) ? draft.model : '__custom__'}
               onChange={(e) => {
@@ -266,14 +268,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {m.label}
                 </option>
               ))}
-              <option value="__custom__">Özel Model Kimliği Gir...</option>
+              <option value="__custom__">{t.customModelOption}</option>
             </select>
 
             <input
               type="text"
               value={draft.model}
               onChange={(e) => setDraft((prev) => ({ ...prev, model: e.target.value }))}
-              placeholder="Model adı (ör. gemini-2.5-flash, gpt-4o-mini, anthropic/claude-3.5-sonnet)"
+              placeholder="gemini-2.5-flash, gpt-4o-mini, anthropic/claude-3.5-sonnet"
               className="w-full px-3 py-1.5 border border-slate-300 rounded-lg font-mono text-xs"
             />
           </div>
@@ -282,7 +284,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
             <div>
               <label className="block font-medium text-slate-700 mb-1">
-                Parça Başına Maks. Satır
+                {t.chunkMaxLinesLabel}
               </label>
               <input
                 type="number"
@@ -300,7 +302,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
             <div>
               <label className="block font-medium text-slate-700 mb-1">
-                Örtüşme (Overlap) Satırı
+                {t.chunkOverlapLabel}
               </label>
               <input
                 type="number"
@@ -348,7 +350,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             ) : (
               <PlugZap className="w-3.5 h-3.5 text-indigo-600" />
             )}
-            Bağlantıyı Test Et
+            {t.testConnBtn}
           </button>
 
           <div className="flex items-center gap-2">
@@ -357,14 +359,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               onClick={onClose}
               className="px-4 py-1.5 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-200"
             >
-              İptal
+              {t.cancelBtn}
             </button>
             <button
               type="button"
               onClick={handleSave}
               className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm"
             >
-              Kaydet
+              {t.saveBtn}
             </button>
           </div>
         </div>

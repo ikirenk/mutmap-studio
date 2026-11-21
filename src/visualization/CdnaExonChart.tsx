@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import * as d3 from 'd3';
+import { useT } from '../i18n/translations';
 import {
   GeneStructure,
   LabelCoord,
@@ -90,6 +91,7 @@ export const CdnaExonChart: React.FC<CdnaExonChartProps> = ({
   onResetClusterPosition,
   onHoverMutation,
 }) => {
+  const { t } = useT();
   const [dragging, setDragging] = useState<{
     id: string;
     x: number;
@@ -480,9 +482,11 @@ export const CdnaExonChart: React.FC<CdnaExonChartProps> = ({
             fontSize={Math.max(10, style.titleFontSize - 6)}
             fill="#475569"
           >
-            {`${style.subtitle ? style.subtitle + ' — ' : ''}Metrik: ${
-              style.countMetric === 'family_count' ? 'Aile Sayısı' : 'Allel Sayısı'
-            } (Küme Eşiği > ${style.mode2ClusterThreshold})`}
+            {t.mode2Subtitle(
+              style.subtitle,
+              style.countMetric,
+              style.mode2ClusterThreshold,
+            )}
           </text>
         </g>
       )}

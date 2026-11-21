@@ -10,6 +10,7 @@ import {
   StopCircle,
 } from 'lucide-react';
 import { SAMPLE_ITGB2_RAW_TEXT } from '../data/sampleITGB2';
+import { useT } from '../i18n/translations';
 import { splitTableIntoChunks } from '../services/ai/chunker';
 import { parseMutationsLocally } from '../services/ai/localParser';
 import { AIParseProgress, parseMutationsWithAI } from '../services/ai/parser';
@@ -24,6 +25,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
   onOpenSettings,
   onNotify,
 }) => {
+  const { t } = useT();
   const rawInputText = useProjectStore((s) => s.rawInputText);
   const setRawInputText = useProjectStore((s) => s.setRawInputText);
   const aiSettings = useProjectStore((s) => s.aiSettings);
@@ -53,7 +55,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
 
   const handleAIParse = async () => {
     if (!rawInputText.trim()) {
-      setErrorMsg('Lütfen önce makaleden kopyaladığınız mutasyon tablosunu metin alanına yapıştırın.');
+      setErrorMsg(t.errPasteFirst);
       return;
     }
 
@@ -72,7 +74,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
       });
 
       if (result.mutations.length === 0) {
-        setErrorMsg('Yapay zeka metinden geçerli bir mutasyon satırı çıkaramadı. Tablo formatını kontrol edin.');
+        setErrorMsg(t.errAiNoRows);
       } else {
         if (mergeMode === 'replace') {
           setMutations(result.mutations);
@@ -80,14 +82,11 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
           appendMutations(result.mutations);
         }
         setWarnings(result.warnings);
-        onNotify(
-          `${result.mutations.length} mutasyon ${result.chunksProcessed} parçadan başarıyla ayrıştırıldı.`,
-          'success',
-        );
+        onNotify(t.aiParseSuccess(result.mutations.length, result.chunksProcessed), 'success');
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {
-        onNotify('Yapay zeka ayrıştırma işlemi iptal edildi.', 'info');
+        onNotify(t.aiParseCancelled, 'info');
       } else {
         const msg = err instanceof Error ? err.message : String(err);
         setErrorMsg(msg);
@@ -103,9 +102,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
     setWarnings([]);
     const parsed = parseMutationsLocally(rawInputText);
     if (parsed.length === 0) {
-      setErrorMsg(
-        'Yerel ayrıştırıcı cDNA/protein sütunlarını tanıyamadı. Karmaşık PDF artıkları için Yapay Zeka (AI) modunu kullanın.',
-      );
+      setErrorMsg(t.errLocalParseFailed);
       return;
     }
     if (mergeMode === 'replace') {
@@ -113,7 +110,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
     } else {
       appendMutations(parsed);
     }
-    onNotify(`Yerel ayrıştırıcı ile ${parsed.length} mutasyon eklendi.`, 'success');
+    onNotify(t.localParseSuccess(parsed.length), 'success');
   };
 
   return (
@@ -122,11 +119,9 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
         <div>
           <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
             <ClipboardPaste className="w-4 h-4 text-indigo-600" />
-            Ham Mutasyon Tablosu Girişi
+            {t.rawInputTitle}
           </h2>
-          <p className="text-[11px] text-slate-500 mt-0.5">
-            PDF veya makaleden kopyalanan satır kaymalı ham tabloları yapıştırın.
-          </p>
+          <p className="text-[11px] text-slate-500 mt-0.5">{t.rawInputSubtitle}</p>
         </div>
 
         <button
@@ -134,7 +129,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
           onClick={() => setRawInputText(SAMPLE_ITGB2_RAW_TEXT)}
           className="text-xs px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium border border-slate-200"
         >
-          Örnek Ham Metin
+          {t.sampleRawBtn}
         </button>
       </div>
 
@@ -147,7 +142,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
             }`}
           />
           <span className="font-medium text-slate-700">
-            Sağlayıcı:{' '}
+            {t.providerLabel}{' '}
             <strong className="text-indigo-700">
               {aiSettings.provider === 'gemini'
                 ? 'Google Gemini'
@@ -158,7 +153,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
                       try {
                         return `OpenAI (${new URL(custom).host})`;
                       } catch {
-                        return 'OpenAI (Özel URL)';
+                        return `OpenAI (${t.customUrlTag})`;
                       }
                     })()
                   : 'OpenRouter'}
@@ -167,7 +162,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
           </span>
           {estimatedChunks > 0 && (
             <span className="px-1.5 py-0.5 rounded bg-white border border-indigo-200 text-[11px] text-indigo-700">
-              {estimatedChunks} parça (chunk)
+              {t.chunksLabel(estimatedChunks)}
             </span>
           )}
         </div>
@@ -178,7 +173,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
           className="inline-flex items-center gap-1 text-indigo-700 hover:text-indigo-900 font-medium"
         >
           <Settings2 className="w-3.5 h-3.5" />
-          {hasApiKey ? 'API Ayarları' : 'API Anahtarı Ekle'}
+          {hasApiKey ? t.apiSettingsBtn : t.addApiKeyBtn}
         </button>
       </div>
 
@@ -187,7 +182,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
         <textarea
           value={rawInputText}
           onChange={(e) => setRawInputText(e.target.value)}
-          placeholder={`Örnek ham tablo:\nExon  cDNA change  Protein change  Mutation type  Families(Alleles)  Phenotype\nEx-8  c.850G>A     p.Gly284Ser     Missense       30(58)             LAD-I0`}
+          placeholder={t.rawInputPlaceholder}
           className="w-full flex-1 min-h-[180px] p-3 text-xs font-mono text-slate-800 bg-slate-50 border border-slate-200 rounded-lg resize-none focus:outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15"
         />
 
@@ -196,9 +191,9 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
             <div className="flex items-center justify-between text-xs text-indigo-900 font-medium mb-1.5">
               <span className="flex items-center gap-1.5">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Yapay zeka ayrıştırıyor... ({progress.completedChunks}/{progress.totalChunks} parça)
+                {t.aiParsingProgress(progress.completedChunks, progress.totalChunks)}
               </span>
-              <span>{progress.extractedCount} satır</span>
+              <span>{t.rowsUnit(progress.extractedCount)}</span>
             </div>
             <div className="w-full h-1.5 bg-indigo-200 rounded-full overflow-hidden">
               <div
@@ -243,7 +238,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
               onChange={() => setMergeMode('replace')}
               className="text-indigo-600"
             />
-            <span>Tabloyu Değiştir</span>
+            <span>{t.replaceTable}</span>
           </label>
           <label className="flex items-center gap-1 cursor-pointer">
             <input
@@ -253,7 +248,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
               onChange={() => setMergeMode('append')}
               className="text-indigo-600"
             />
-            <span>Mevcuda Ekle</span>
+            <span>{t.appendToTable}</span>
           </label>
         </div>
 
@@ -262,11 +257,11 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
             type="button"
             onClick={handleLocalParse}
             disabled={isParsing || !rawInputText.trim()}
-            title="API olmadan düzenli CSV/TSV veya boşluklu tabloları hızlıca ayrıştır"
+            title={t.quickLocalParseTitle}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-45"
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
-            Hızlı Yerel Ayrıştır
+            {t.quickLocalParse}
           </button>
 
           {isParsing ? (
@@ -276,7 +271,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-red-600 hover:bg-red-700 shadow-sm"
             >
               <StopCircle className="w-3.5 h-3.5" />
-              İptal Et
+              {t.cancel}
             </button>
           ) : (
             <button
@@ -286,7 +281,7 @@ export const DataInputPanel: React.FC<DataInputPanelProps> = ({
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm disabled:opacity-45"
             >
               <Bot className="w-3.5 h-3.5" />
-              Yapay Zeka ile Ayrıştır
+              {t.parseWithAi}
             </button>
           )}
         </div>

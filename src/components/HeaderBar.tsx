@@ -12,6 +12,7 @@ import {
   Table2,
   Undo2,
 } from 'lucide-react';
+import { useT } from '../i18n/translations';
 import { AppTab, useProjectStore } from '../store/useProjectStore';
 
 export interface HeaderBarProps {
@@ -21,18 +22,14 @@ export interface HeaderBarProps {
   onOpenSettings: () => void;
 }
 
-const TABS: Array<{ id: AppTab; label: string; icon: React.ReactNode }> = [
-  { id: 'data', label: '1. Veri Girişi & Tablo', icon: <Table2 className="w-4 h-4" /> },
-  { id: 'gene', label: '2. Gen / Protein Yapısı', icon: <Dna className="w-4 h-4" /> },
-  { id: 'chart', label: '3. Grafik Stüdyosu', icon: <BarChart3 className="w-4 h-4" /> },
-];
-
 export const HeaderBar: React.FC<HeaderBarProps> = ({
   onOpenProject,
   onSaveProject,
   onOpenExport,
   onOpenSettings,
 }) => {
+  const { lang, t } = useT();
+  const setLanguage = useProjectStore((s) => s.setLanguage);
   const activeTab = useProjectStore((s) => s.activeTab);
   const setActiveTab = useProjectStore((s) => s.setActiveTab);
   const gene = useProjectStore((s) => s.geneStructure);
@@ -43,6 +40,12 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   const redo = useProjectStore((s) => s.redo);
   const newEmptyProject = useProjectStore((s) => s.newEmptyProject);
   const loadSampleProject = useProjectStore((s) => s.loadSampleProject);
+
+  const tabs: Array<{ id: AppTab; label: string; icon: React.ReactNode }> = [
+    { id: 'data', label: t.tabData, icon: <Table2 className="w-4 h-4" /> },
+    { id: 'gene', label: t.tabGene, icon: <Dna className="w-4 h-4" /> },
+    { id: 'chart', label: t.tabChart, icon: <BarChart3 className="w-4 h-4" /> },
+  ];
 
   return (
     <header className="h-14 bg-white border-b border-slate-200 px-4 flex items-center justify-between shrink-0 shadow-sm z-20">
@@ -61,14 +64,15 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           <div className="text-[11px] text-slate-500">
             <span className="font-semibold text-slate-700">{gene.geneSymbol}</span>
             {' · '}
-            {gene.proteinLengthAa} aa / {gene.cdnaLengthBp} bp · {mutationCount} mutasyon
+            {gene.proteinLengthAa} aa / {gene.cdnaLengthBp} bp · {mutationCount}{' '}
+            {t.mutationsWord}
           </div>
         </div>
       </div>
 
       {/* Center: Workflow Stepper Tabs */}
       <nav className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">
-        {TABS.map((tab) => {
+        {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
@@ -88,14 +92,14 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
         })}
       </nav>
 
-      {/* Right: Actions */}
+      {/* Right: Actions & Language Switcher */}
       <div className="flex items-center gap-1.5">
         <div className="flex items-center border-r border-slate-200 pr-2 mr-1 gap-1">
           <button
             type="button"
             onClick={undo}
             disabled={undoStack.length === 0}
-            title="Etiket Konumunu Geri Al (Ctrl+Z)"
+            title={t.undoTitle}
             className="p-1.5 rounded-md text-slate-600 hover:bg-slate-100 disabled:opacity-35 disabled:pointer-events-none"
           >
             <Undo2 className="w-4 h-4" />
@@ -104,7 +108,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             type="button"
             onClick={redo}
             disabled={redoStack.length === 0}
-            title="Etiket Konumunu Yinele (Ctrl+Shift+Z)"
+            title={t.redoTitle}
             className="p-1.5 rounded-md text-slate-600 hover:bg-slate-100 disabled:opacity-35 disabled:pointer-events-none"
           >
             <Redo2 className="w-4 h-4" />
@@ -114,41 +118,41 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
         <button
           type="button"
           onClick={newEmptyProject}
-          title="Yeni Boş Proje"
+          title={t.newProjectTitle}
           className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-700 hover:bg-slate-100 border border-transparent hover:border-slate-200"
         >
           <FilePlus2 className="w-3.5 h-3.5" />
-          <span className="hidden xl:inline">Yeni</span>
+          <span className="hidden xl:inline">{t.newProject}</span>
         </button>
 
         <button
           type="button"
           onClick={loadSampleProject}
-          title="Örnek ITGB2 / LAD-I Verisini Yükle"
+          title={t.sampleDataTitle}
           className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200"
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span className="hidden xl:inline">Örnek Veri</span>
+          <span className="hidden xl:inline">{t.sampleData}</span>
         </button>
 
         <button
           type="button"
           onClick={onOpenProject}
-          title="Proje Dosyası Aç (.json)"
+          title={t.openTitle}
           className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-700 hover:bg-slate-100 border border-slate-200"
         >
           <FolderOpen className="w-3.5 h-3.5" />
-          <span className="hidden lg:inline">Aç</span>
+          <span className="hidden lg:inline">{t.open}</span>
         </button>
 
         <button
           type="button"
           onClick={onSaveProject}
-          title="Projeyi Kaydet (.json) (Ctrl+S)"
+          title={t.saveTitle}
           className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-700 hover:bg-slate-100 border border-slate-200"
         >
           <Save className="w-3.5 h-3.5" />
-          <span className="hidden lg:inline">Kaydet</span>
+          <span className="hidden lg:inline">{t.save}</span>
         </button>
 
         <button
@@ -157,13 +161,42 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm"
         >
           <Download className="w-3.5 h-3.5" />
-          <span>Dışa Aktar</span>
+          <span>{t.exportBtn}</span>
         </button>
+
+        {/* TR / EN Language Switcher */}
+        <div
+          className="flex items-center bg-slate-100 p-0.5 rounded-md border border-slate-200 text-[11px] font-semibold"
+          title="Dil / Language"
+        >
+          <button
+            type="button"
+            onClick={() => setLanguage('tr')}
+            className={`px-1.5 py-1 rounded transition-colors ${
+              lang === 'tr'
+                ? 'bg-white text-indigo-700 shadow-sm'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            TR
+          </button>
+          <button
+            type="button"
+            onClick={() => setLanguage('en')}
+            className={`px-1.5 py-1 rounded transition-colors ${
+              lang === 'en'
+                ? 'bg-white text-indigo-700 shadow-sm'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            EN
+          </button>
+        </div>
 
         <button
           type="button"
           onClick={onOpenSettings}
-          title="Yapay Zeka (API) Ayarları"
+          title={t.aiSettingsTitle}
           className="p-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
         >
           <Settings className="w-4 h-4" />

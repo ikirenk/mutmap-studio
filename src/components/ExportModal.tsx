@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Download, FileImage, FileText, Loader2, PenTool, X } from 'lucide-react';
+import { useT } from '../i18n/translations';
 import { exportSvgToPdf } from '../services/export/pdfExporter';
 import { exportSvgToPngBytes } from '../services/export/pngExporter';
 import { serializeChartSvg } from '../services/export/svgSerializer';
@@ -21,6 +22,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   svgRef,
   onNotify,
 }) => {
+  const { t } = useT();
   const gene = useProjectStore((s) => s.geneStructure);
   const activeMode = useProjectStore((s) => s.activeMode);
   const style = useProjectStore((s) => s.style);
@@ -44,7 +46,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   const handleExport = async () => {
     const svgEl = svgRef.current;
     if (!svgEl) {
-      onNotify('Dışa aktarılacak aktif SVG grafiği bulunamadı. Önce Grafik Stüdyosu sekmesine geçin.', 'error');
+      onNotify(t.exportNoSvgErr, 'error');
       return;
     }
 
@@ -56,17 +58,17 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         transparentBackground: transparentBg && format !== 'pdf',
       });
 
-      const safeBase = fileBase.trim() || 'mutasyon_haritasi';
+      const safeBase = fileBase.trim() || 'mutation_map';
 
       if (format === 'svg') {
         const res = await saveTextFile({
           defaultPath: `${safeBase}.svg`,
-          filters: [{ name: 'SVG Vektör Grafiği', extensions: ['svg'] }],
+          filters: [{ name: t.svgTitle, extensions: ['svg'] }],
           content: svgMarkup,
           mimeType: 'image/svg+xml;charset=utf-8',
         });
         if (!res.canceled) {
-          onNotify('Vektörel SVG dosyası başarıyla dışa aktarıldı.', 'success');
+          onNotify(t.exportSvgOk, 'success');
           onClose();
         }
       } else if (format === 'pdf') {
@@ -77,7 +79,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           defaultPath: `${safeBase}.pdf`,
         });
         if (!res.canceled) {
-          onNotify('Akademik yayın kalitesinde PDF dosyası oluşturuldu.', 'success');
+          onNotify(t.exportPdfOk, 'success');
           onClose();
         }
       } else {
@@ -92,18 +94,18 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         });
         const res = await saveBinaryFile({
           defaultPath: `${safeBase}_${dpi}dpi.png`,
-          filters: [{ name: `PNG Görüntü (${dpi} DPI)`, extensions: ['png'] }],
+          filters: [{ name: `PNG (${dpi} DPI)`, extensions: ['png'] }],
           bytes,
           mimeType: 'image/png',
         });
         if (!res.canceled) {
-          onNotify(`${dpi} DPI PNG dosyası başarıyla kaydedildi.`, 'success');
+          onNotify(t.exportPngOk(dpi), 'success');
           onClose();
         }
       }
     } catch (err) {
       onNotify(
-        `Dışa aktarma hatası: ${err instanceof Error ? err.message : String(err)}`,
+        t.exportErr(err instanceof Error ? err.message : String(err)),
         'error',
       );
     } finally {
@@ -119,26 +121,29 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   }> = [
     {
       id: 'svg',
-      title: 'SVG (Vektörel)',
-      desc: 'Adobe Illustrator & Inkscape ile düzenlenebilir saf vektör',
+      title: t.svgTitle,
+      desc: t.svgDesc,
       icon: <PenTool className="w-4 h-4 text-indigo-600" />,
     },
     {
       id: 'pdf',
-      title: 'PDF (Akademik Yayın)',
-      desc: 'Dergi gönderimleri için vektörel baskı kalitesi',
+      title: t.pdfTitle,
+      desc: t.pdfDesc,
       icon: <FileText className="w-4 h-4 text-rose-600" />,
     },
     {
       id: 'png300',
       title: 'PNG — 300 DPI',
-      desc: `${Math.round(style.width * (300 / 96))} × ${Math.round(style.height * (300 / 96))} px (pHYs 300 DPI)`,
+      desc: t.png300Desc(
+        Math.round(style.width * (300 / 96)),
+        Math.round(style.height * (300 / 96)),
+      ),
       icon: <FileImage className="w-4 h-4 text-emerald-600" />,
     },
     {
       id: 'png600',
       title: 'PNG — 600 DPI',
-      desc: `${outW} × ${outH} px Ultra Yüksek Çözünürlük`,
+      desc: t.png600Desc(outW, outH),
       icon: <FileImage className="w-4 h-4 text-amber-600" />,
     },
   ];
@@ -149,7 +154,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <Download className="w-4 h-4 text-indigo-600" />
-            Grafiği Yayın Kalitesinde Dışa Aktar
+            {t.exportModalTitle}
           </h2>
           <button
             type="button"
@@ -162,7 +167,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
         <div className="p-5 space-y-4 text-xs">
           <div>
-            <label className="block font-semibold text-slate-700 mb-1.5">Dosya Adı</label>
+            <label className="block font-semibold text-slate-700 mb-1.5">
+              {t.fileNameLabel}
+            </label>
             <input
               type="text"
               value={fileBase}
@@ -172,7 +179,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-2">Çıktı Formatı</label>
+            <label className="block font-semibold text-slate-700 mb-2">
+              {t.outputFormatLabel}
+            </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {formatOptions.map((opt) => (
                 <button
@@ -202,16 +211,22 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 checked={transparentBg}
                 onChange={(e) => setTransparentBg(e.target.checked)}
               />
-              <span>Şeffaf arka plan kullan (SVG / PNG)</span>
+              <span>{t.transparentBgLabel}</span>
             </label>
           )}
 
           <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex items-center justify-between">
             <span>
-              Vektör tuval: <strong>{style.width} × {style.height} px</strong>
+              {t.vectorCanvasLabel}{' '}
+              <strong>
+                {style.width} × {style.height} px
+              </strong>
             </span>
             <span>
-              Fiziksel baskı boyutu: <strong>{widthInches}&quot; × {heightInches}&quot;</strong>
+              {t.physicalPrintLabel}{' '}
+              <strong>
+                {widthInches}&quot; × {heightInches}&quot;
+              </strong>
             </span>
           </div>
         </div>
@@ -222,7 +237,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             onClick={onClose}
             className="px-4 py-1.5 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-200"
           >
-            Vazgeç
+            {t.closeCancel}
           </button>
           <button
             type="button"
@@ -235,7 +250,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             ) : (
               <Download className="w-3.5 h-3.5" />
             )}
-            Dışa Aktar
+            {t.exportBtn}
           </button>
         </div>
       </div>

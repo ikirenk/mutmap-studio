@@ -9,14 +9,15 @@ import {
   Search,
   Trash2,
 } from 'lucide-react';
+import { useT } from '../i18n/translations';
+import { normalizeMutationRecord } from '../services/ai/parser';
+import { openTextFile, saveTextFile } from '../services/platform';
+import { useProjectStore } from '../store/useProjectStore';
 import {
   MUTATION_TYPES,
   MutationRecord,
   MutationType,
 } from '../types/schema';
-import { normalizeMutationRecord } from '../services/ai/parser';
-import { openTextFile, saveTextFile } from '../services/platform';
-import { useProjectStore } from '../store/useProjectStore';
 
 export interface MutationDataGridProps {
   onNotify: (msg: string, type?: 'success' | 'error' | 'info') => void;
@@ -25,6 +26,7 @@ export interface MutationDataGridProps {
 type SortKey = 'position_aa' | 'position_bp' | 'family_count' | 'allele_count' | 'mutation_type';
 
 export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) => {
+  const { t } = useT();
   const mutations = useProjectStore((s) => s.mutations);
   const gene = useProjectStore((s) => s.geneStructure);
   const addEmptyMutation = useProjectStore((s) => s.addEmptyMutation);
@@ -100,19 +102,19 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
   const handleBulkDelete = () => {
     if (selectedIds.size === 0) return;
     removeMutationsBulk(Array.from(selectedIds));
-    onNotify(`${selectedIds.size} mutasyon satırı silindi.`, 'info');
+    onNotify(t.bulkDeletedMsg(selectedIds.size), 'info');
     setSelectedIds(new Set());
   };
 
   const handleExportJson = async () => {
     const res = await saveTextFile({
-      defaultPath: `${gene.geneSymbol || 'mutasyon'}_verisi.json`,
-      filters: [{ name: 'JSON Dosyası', extensions: ['json'] }],
+      defaultPath: `${gene.geneSymbol || 'mutations'}_data.json`,
+      filters: [{ name: 'JSON', extensions: ['json'] }],
       content: JSON.stringify(mutations, null, 2),
       mimeType: 'application/json',
     });
     if (!res.canceled) {
-      onNotify('Mutasyon JSON verisi dışa aktarıldı.', 'success');
+      onNotify(t.exportedJsonMsg, 'success');
     }
   };
 
@@ -144,33 +146,33 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
         .join(','),
     );
     const res = await saveTextFile({
-      defaultPath: `${gene.geneSymbol || 'mutasyon'}_verisi.csv`,
-      filters: [{ name: 'CSV Dosyası', extensions: ['csv'] }],
+      defaultPath: `${gene.geneSymbol || 'mutations'}_data.csv`,
+      filters: [{ name: 'CSV', extensions: ['csv'] }],
       content: [header, ...rows].join('\n'),
       mimeType: 'text/csv;charset=utf-8',
     });
     if (!res.canceled) {
-      onNotify('Mutasyon CSV tablosu dışa aktarıldı.', 'success');
+      onNotify(t.exportedCsvMsg, 'success');
     }
   };
 
   const handleImportJson = async () => {
     const res = await openTextFile({
-      filters: [{ name: 'JSON Dosyası', extensions: ['json'] }],
+      filters: [{ name: 'JSON', extensions: ['json'] }],
     });
     if (res.canceled || !res.content) return;
     try {
       const parsed = JSON.parse(res.content);
       const arr = Array.isArray(parsed) ? parsed : parsed?.mutations;
       if (!Array.isArray(arr)) {
-        throw new Error('JSON dosyası bir mutasyon dizisi içermiyor.');
+        throw new Error('JSON file does not contain a mutations array.');
       }
       const normalized = arr.map((item, idx) => normalizeMutationRecord(item, idx));
       setMutations(normalized);
-      onNotify(`${normalized.length} mutasyon JSON dosyasından yüklendi.`, 'success');
+      onNotify(t.importedJsonMsg(normalized.length), 'success');
     } catch (err) {
       onNotify(
-        `JSON içe aktarma hatası: ${err instanceof Error ? err.message : String(err)}`,
+        t.importJsonErr(err instanceof Error ? err.message : String(err)),
         'error',
       );
     }
@@ -178,13 +180,13 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
 
   const getRowWarning = (m: MutationRecord): string | null => {
     if (m.position_aa === null && m.position_bp === null) {
-      return 'Hem AA hem bp pozisyonu eksik — grafikte çizilemez.';
+      return t.warnMissingPos;
     }
     if (m.position_aa !== null && m.position_aa > gene.proteinLengthAa) {
-      return `AA pozisyonu (${m.position_aa}) protein uzunluğunu (${gene.proteinLengthAa} aa) aşıyor.`;
+      return t.warnAaOutOfRange(m.position_aa, gene.proteinLengthAa);
     }
     if (m.position_bp !== null && m.position_bp > gene.cdnaLengthBp) {
-      return `bp pozisyonu (${m.position_bp}) cDNA uzunluğunu (${gene.cdnaLengthBp} bp) aşıyor.`;
+      return t.warnBpOutOfRange(m.position_bp, gene.cdnaLengthBp);
     }
     return null;
   };
@@ -195,7 +197,7 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
       <div className="px-4 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 bg-slate-50/70">
         <div className="flex items-center gap-3">
           <h2 className="text-sm font-semibold text-slate-900">
-            Önizleme ve Düzenleme Tablosu ({mutations.length})
+            {t.gridTitle(mutations.length)}
           </h2>
           <div className="relative">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
@@ -203,7 +205,7 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Varyant, fenotip, ekzon ara..."
+              placeholder={t.gridSearchPlaceholder}
               className="pl-8 pr-3 py-1 text-xs border border-slate-300 rounded-md bg-white focus:outline-none focus:border-indigo-500 w-52"
             />
           </div>
@@ -217,7 +219,7 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              Seçili Sil ({selectedIds.size})
+              {t.deleteSelected(selectedIds.size)}
             </button>
           )}
 
@@ -227,7 +229,7 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200"
           >
             <Plus className="w-3.5 h-3.5" />
-            Satır Ekle
+            {t.addRow}
           </button>
 
           <button
@@ -236,7 +238,7 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-300"
           >
             <FileUp className="w-3.5 h-3.5" />
-            JSON Yükle
+            {t.importJson}
           </button>
 
           <button
@@ -263,7 +265,7 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm"
           >
             <BarChart3 className="w-3.5 h-3.5" />
-            Grafiğe Geç
+            {t.goToChart}
           </button>
         </div>
       </div>
@@ -283,18 +285,18 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
                   onChange={toggleSelectAll}
                 />
               </th>
-              <th className="p-2 w-7 text-center" title="Doğrulama Durumu">
+              <th className="p-2 w-7 text-center" title={t.colStatusTitle}>
                 !
               </th>
-              <th className="p-2 w-16">Ekzon</th>
-              <th className="p-2 min-w-[130px]">cDNA Değişimi</th>
-              <th className="p-2 min-w-[135px]">Protein Değişimi</th>
+              <th className="p-2 w-16">{t.colExon}</th>
+              <th className="p-2 min-w-[130px]">{t.colCdna}</th>
+              <th className="p-2 min-w-[135px]">{t.colProtein}</th>
               <th
                 className="p-2 w-20 cursor-pointer hover:text-indigo-700"
                 onClick={() => toggleSort('position_aa')}
               >
                 <span className="inline-flex items-center gap-1">
-                  AA Poz
+                  {t.colAaPos}
                   <ArrowUpDown className="w-3 h-3" />
                 </span>
               </th>
@@ -303,7 +305,7 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
                 onClick={() => toggleSort('position_bp')}
               >
                 <span className="inline-flex items-center gap-1">
-                  bp Poz
+                  {t.colBpPos}
                   <ArrowUpDown className="w-3 h-3" />
                 </span>
               </th>
@@ -312,7 +314,7 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
                 onClick={() => toggleSort('mutation_type')}
               >
                 <span className="inline-flex items-center gap-1">
-                  Mutasyon Tipi
+                  {t.colMutType}
                   <ArrowUpDown className="w-3 h-3" />
                 </span>
               </th>
@@ -320,17 +322,17 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
                 className="p-2 w-16 cursor-pointer hover:text-indigo-700"
                 onClick={() => toggleSort('family_count')}
               >
-                Aile
+                {t.colFamily}
               </th>
               <th
                 className="p-2 w-16 cursor-pointer hover:text-indigo-700"
                 onClick={() => toggleSort('allele_count')}
               >
-                Allel
+                {t.colAllele}
               </th>
-              <th className="p-2 min-w-[100px]">Fenotip</th>
-              <th className="p-2 w-24">Konum</th>
-              <th className="p-2 w-10 text-center">Sil</th>
+              <th className="p-2 min-w-[100px]">{t.colPhenotype}</th>
+              <th className="p-2 w-24">{t.colSide}</th>
+              <th className="p-2 w-10 text-center">{t.colDelete}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -428,9 +430,9 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
                       }
                       className="grid-cell-input bg-white"
                     >
-                      {MUTATION_TYPES.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
+                      {MUTATION_TYPES.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
                         </option>
                       ))}
                     </select>
@@ -489,16 +491,16 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
                       }
                       className="grid-cell-input bg-white"
                     >
-                      <option value="auto">Oto</option>
-                      <option value="top">Üst</option>
-                      <option value="bottom">Alt</option>
+                      <option value="auto">{t.sideAuto}</option>
+                      <option value="top">{t.sideTop}</option>
+                      <option value="bottom">{t.sideBottom}</option>
                     </select>
                   </td>
                   <td className="p-1 text-center">
                     <button
                       type="button"
                       onClick={() => removeMutation(m.id)}
-                      title="Satırı Sil"
+                      title={t.colDelete}
                       className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -511,8 +513,7 @@ export const MutationDataGrid: React.FC<MutationDataGridProps> = ({ onNotify }) 
             {filteredAndSorted.length === 0 && (
               <tr>
                 <td colSpan={13} className="p-8 text-center text-slate-400 text-xs">
-                  Gösterilecek mutasyon bulunamadı. Sol panelden ham veri yapıştırıp ayrıştırabilir
-                  veya &quot;Satır Ekle&quot; butonunu kullanabilirsiniz.
+                  {t.gridEmpty}
                 </td>
               </tr>
             )}
