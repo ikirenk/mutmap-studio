@@ -6,7 +6,7 @@
 
 **Standalone Bioinformatics Desktop Application for AI-Powered Mutation Parsing & Publication-Quality Gene/Protein Mapping**
 
-[![Download Windows Installer](https://img.shields.io/badge/Windows-Installer%20(.exe)-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/ikirenk/mutmap-studio/releases/latest)
+[![Download Windows Installer](https://img.shields.io/badge/Windows-Installer%20(.exe)-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/ikirenk/mutmap-studio/releases/download/v1.0.0/MutMap.Studio.Setup.1.0.0.exe)
 [![Download Windows Portable](https://img.shields.io/badge/Windows-Portable%20(.zip)-00A4EF?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/ikirenk/mutmap-studio/releases/latest)
 [![Download macOS](https://img.shields.io/badge/macOS-Universal%20(.dmg)-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/ikirenk/mutmap-studio/releases/latest)
 [![Download Linux](https://img.shields.io/badge/Linux-AppImage%20%2F%20deb-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/ikirenk/mutmap-studio/releases/latest)
