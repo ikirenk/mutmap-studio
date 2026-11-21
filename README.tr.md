@@ -6,7 +6,7 @@
 
 **Yapay Zeka Destekli Mutasyon Ayrıştırma ve Akademik Yayın Kalitesinde Gen/Protein Haritalama Masaüstü Uygulaması**
 
-[![Windows Kurulum İndir](https://img.shields.io/badge/Windows-Kurulum%20(.exe)-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/ikirenk/mutmap-studio/releases/latest)
+[![Windows Kurulum İndir](https://img.shields.io/badge/Windows-Kurulum%20(.exe)-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/ikirenk/mutmap-studio/releases/download/v1.0.0/MutMap.Studio.Setup.1.0.0.exe)
 [![Windows Taşınabilir İndir](https://img.shields.io/badge/Windows-Portable%20(.zip)-00A4EF?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/ikirenk/mutmap-studio/releases/latest)
 [![macOS İndir](https://img.shields.io/badge/macOS-Universal%20(.dmg)-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/ikirenk/mutmap-studio/releases/latest)
 [![Linux İndir](https://img.shields.io/badge/Linux-AppImage%20%2F%20deb-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/ikirenk/mutmap-studio/releases/latest)
@@ -26,9 +26,9 @@
 ### 1. Yapay Zeka Destekli Mutasyon Tablosu Ayrıştırıcı
 - **Satır Kaymalı PDF / Makale Metni Desteği:** Tablo başlıklarını otomatik algılar, bölünmüş satır devamlarını birleştirir, uzun tabloları token limitine takılmadan örtüşen parçalara (chunking) böler ve sınır tekrarlarını tekilleştirir.
 - **Çoklu Yapay Zeka Sağlayıcısı:**
-  - **Google Gemini** (`gemini-2.5-flash`, `gemini-2.5-pro`, `gemini-2.0-flash`) — katı `responseSchema` desteği
-  - **OpenAI** (`gpt-4o-mini`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`) + **Özel Uç Nokta (Custom URL)** desteği (ör. `https://api.axforge.ai/v1/chat/completions`, yerel `http://localhost` sunucuları)
-  - **OpenRouter** (`anthropic/claude-3.5-sonnet`, `google/gemini-2.5-flash`, `openai/gpt-4o`, `deepseek/deepseek-chat`)
+  - **Google Gemini** katı `responseSchema` desteği
+  - **OpenAI** + **Özel Uç Nokta (Custom URL)** desteği (ör. yerel `http://localhost` sunucuları)
+  - **OpenRouter**
 - **Çevrimdışı Yerel Yedek:** API anahtarı olmadan düzenli CSV/TSV veya boşluklu tabloları anında ayrıştıran yerel motor.
 - **Yapılandırılmış Çıkarım:** `cDNA_change`, `protein_change`, `position_aa`, `position_bp`, `exon`, `mutation_type`, `phenotype_or_type` alanlarını çıkarır; `"30(58)"` gibi birleşik sayımları `family_count` ve `allele_count` olarak ayrı ayrı ayrıştırır.
 - **Düzenlenebilir Veri Tablosu:** Grafik öncesinde satır içi düzenleme, sıralama, arama, doğrulama uyarıları ve CSV/JSON içe & dışa aktarım.
