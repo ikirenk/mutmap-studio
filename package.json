@@ -1,0 +1,78 @@
+{
+  "name": "mutmap-studio",
+  "version": "1.0.0",
+  "homepage": "https://github.com/ikirenk",
+  "description": "Bilimsel mutasyon tablolarını yapay zeka ile ayrıştıran ve akademik yayın kalitesinde görselleştiren masaüstü biyoinformatik uygulaması.",
+  "main": "dist-electron/main.js",
+  "author": {
+    "name": "Batuhan Aydogan",
+    "email": "batuhanaydogan06@gmail.com"
+  },
+  "scripts": {
+    "dev:vite": "vite",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "dev": "npm run build:electron && concurrently -k \"npm run dev:vite\" \"wait-on http://localhost:5173 && VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "build": "tsc --noEmit && tsc -p tsconfig.electron.json && vite build",
+    "start:electron": "npm run build && electron .",
+    "package": "npm run build && electron-builder",
+    "package:win": "npm run build && electron-builder --win",
+    "test": "vitest run"
+  },
+  "build": {
+    "appId": "com.mutmap.studio",
+    "productName": "MutMap Studio",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Science"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.education"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    }
+  },
+  "dependencies": {
+    "d3": "^7.9.0",
+    "jspdf": "^2.5.2",
+    "lucide-react": "^0.475.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "svg2pdf.js": "^2.4.0",
+    "zod": "^3.24.2",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/node": "^20.17.0",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.1.2",
+    "electron": "^33.4.1",
+    "electron-builder": "^25.1.8",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3",
+    "vite": "^6.2.0",
+    "vitest": "^3.0.8",
+    "wait-on": "^8.0.2"
+  }
+}
