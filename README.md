@@ -1,4 +1,21 @@
+<div align="center">
+
+**English** | [Türkçe](README.tr.md)
+
 # MutMap Studio
+
+**Standalone Bioinformatics Desktop Application for AI-Powered Mutation Parsing & Publication-Quality Gene/Protein Mapping**
+
+[![Download Windows Installer](https://img.shields.io/badge/Windows-Installer%20(.exe)-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/ikirenk/mutmap-studio/releases/latest)
+[![Download Windows Portable](https://img.shields.io/badge/Windows-Portable%20(.zip)-00A4EF?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/ikirenk/mutmap-studio/releases/latest)
+[![Download macOS](https://img.shields.io/badge/macOS-Universal%20(.dmg)-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/ikirenk/mutmap-studio/releases/latest)
+[![Download Linux](https://img.shields.io/badge/Linux-AppImage%20%2F%20deb-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/ikirenk/mutmap-studio/releases/latest)
+
+</div>
+
+> **Note:** Replace `ikirenk/mutmap-studio` in the download badge URLs above if you publish under a different repository name.
+
+---
 
 **MutMap Studio** is a standalone desktop bioinformatics application (**Electron + React + TypeScript + D3.js / Pure SVG**) that converts raw, copy-pasted mutation tables from scientific papers into structured JSON using AI and renders publication-ready vector visualizations.
 
@@ -31,7 +48,8 @@
   - Non-overlapping horizontal cluster placement with non-crossing angled bottom stems pointing to exact bp coordinates.
   - **Direct-above-cluster** (arrow-free) or **leader-line** label modes with independent font family, size, weight, color, angle, and content toggles.
 
-### 4. Interactive Studio & Export
+### 4. Interactive Studio, Bilingual UI & Export
+- **Bilingual Interface (`TR` / `EN`):** Switch seamlessly between English and Turkish from the top bar.
 - **Drag & Drop + Undo/Redo:** Drag both mutation labels and Mode 2 symbol clusters directly on the SVG canvas (`Ctrl+Z` / `Ctrl+Shift+Z`).
 - **Live Styling & Filtering:** Academic presets (*Nature / Science*, *NEJM / Blood*, *Grayscale Print*), custom colors/shapes/sizes per mutation type, typography controls, legend placement, and filtering by mutation type, phenotype, minimum count, or position range.
 - **Publication Exports:**
@@ -79,7 +97,7 @@ npm run start:electron
 # Build standalone installer / executable for current OS (outputs to release/)
 npm run package
 
-# Build Windows NSIS installer
+# Build Windows NSIS installer & Portable ZIP
 npm run package:win
 ```
 
@@ -87,7 +105,7 @@ npm run package:win
 
 ## Automated GitHub Releases
 
-This repository includes [`.github/workflows/release.yml`](.github/workflows/release.yml) to automatically build and upload desktop executables for **Linux** (`.AppImage`, `.deb`), **Windows** (`.exe`), and **macOS** (`.dmg`) whenever a version tag is pushed:
+This repository includes [`.github/workflows/release.yml`](.github/workflows/release.yml) to automatically build and upload desktop executables for **Linux** (`.AppImage`, `.deb`), **Windows** (`.exe` installer & portable `.zip`), and **macOS** (`.dmg`) whenever a version tag is pushed:
 
 ```bash
 git tag v1.0.0
