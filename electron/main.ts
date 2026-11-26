@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, safeStorage, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, net, safeStorage, shell } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import type {
@@ -181,11 +181,24 @@ function registerIpcHandlers(): void {
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 60000);
+    const timeoutMs = options.timeoutMs ?? 60000;
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    const sanitizedHeaders: Record<string, string> = {};
+    if (options.headers) {
+      for (const [key, val] of Object.entries(options.headers)) {
+        if (typeof val === 'string') {
+          sanitizedHeaders[key] = val.replace(/[\r\n]+/g, '').trim();
+        }
+      }
+    }
+
     try {
-      const response = await fetch(options.url, {
+      // Use Electron's Chromium network stack (net.fetch) so Windows system proxy,
+      // VPN, DNS, and Windows Root CA certificates work reliably.
+      const response = await net.fetch(options.url, {
         method: options.method ?? 'GET',
-        headers: options.headers,
+        headers: sanitizedHeaders,
         body: options.body,
         signal: controller.signal,
       });
@@ -196,6 +209,16 @@ function registerIpcHandlers(): void {
         statusText: response.statusText,
         text,
       };
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new Error(`İstek zaman aşımına uğradı (${Math.round(timeoutMs / 1000)} sn).`);
+      }
+      const cause =
+        err instanceof Error && 'cause' in err && err.cause
+          ? ` (${String((err.cause as { code?: string; message?: string }).code || (err.cause as { message?: string }).message || err.cause)})`
+          : '';
+      const message = err instanceof Error ? err.message : String(err);
+      throw new Error(`Ağ bağlantı hatası: ${message}${cause}`);
     } finally {
       clearTimeout(timeout);
     }
